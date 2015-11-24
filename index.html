@@ -24,10 +24,10 @@
 		<script>
 
 			container=0; stats=0;
-			camera=0; scene=0; projector=0; renderer=0;
-			mesh=0; mixer=0;
-			totalGeom = new THREE.Geometry();
-
+			scene=0; projector=0; renderer=0;
+			horse=0; horse_mixer=0;
+			fox=0; fox_mixer=0;
+			camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
 
 			init();
 			animate();
@@ -37,16 +37,30 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				//
+				//camera
 
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
 				camera.position.y = 300;
 				camera.target = new THREE.Vector3( 0, 150, 0 );
+				
+				//scene
 
 				scene = new THREE.Scene();
 
-				//
+				//floor (grass)
+				
+				var floorTexture = new THREE.ImageUtils.loadTexture( 'grass.png' );
+				floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+				floorTexture.repeat.set( 100, 100 );
+				var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+				var floorGeometry = new THREE.PlaneGeometry(10000, 10000, 10, 10);
+				floor = new THREE.Mesh(floorGeometry, floorMaterial);
+				floor.position.y = -0.5;
+				floor.rotation.x = Math.PI / 2;
+				scene.add(floor);
 
+				//light
+				
 				var light = new THREE.DirectionalLight( 0xefefff, 1.5 );
 				light.position.set( 1, 1, 1 ).normalize();
 				scene.add( light );
@@ -55,25 +69,46 @@
 				light.position.set( -1, -1, -1 ).normalize();
 				scene.add( light );
 
+				//horse
+				
 				var loader = new THREE.JSONLoader();
 				loader.load( "models/animated/horse.js", function( geometry ) {
 
-					mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+					horse = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
 						vertexColors: THREE.FaceColors,
 						morphTargets: true
 					} ) );
-					mesh.scale.set( 1.5, 1.5, 1.5 );
-					totalGeom = ( mesh );
-					scene.add( mesh );
+					horse.scale.set( 1.5, 1.5, 1.5 );
+					scene.add( horse )
 
-					mixer = new THREE.AnimationMixer( mesh );
+					horse_mixer = new THREE.AnimationMixer( horse );
 
 					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 30 );
-					mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+					horse_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
 
 				} );
 
-				//
+
+				//fox
+
+				var l = new THREE.JSONLoader();
+				l.load( "models/animated/fox.js", function( geometry ) {
+
+					fox = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: true
+					} ) );
+					fox.scale.set( 1.5, 1.5, 1.5 );
+					scene.add( fox );
+
+					fox_mixer = new THREE.AnimationMixer( fox );
+
+					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'run', geometry.morphTargets, 30 );
+					fox_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+
+				} );
+
+				//renderer
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setClearColor( 0xf0f0f0 );
@@ -81,7 +116,7 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild(renderer.domElement);
 
-				//
+				//stats
 
 				stats = new Stats();
 				stats.domElement.style.position = 'absolute';
@@ -126,15 +161,17 @@
 				camera.position.z = radius * Math.cos( THREE.Math.degToRad( 90 ) );
 
 				
-				if ( mesh ) { mesh.position.z = theta; }
+				if ( horse ) { horse.position.z = theta*1.5; }
+				if ( fox ) { fox.position.z = theta; }
 				
 				camera.lookAt( camera.target );
 
-				if ( mixer ) {
+				if ( horse_mixer && fox_mixer ) {
 
 					var time = Date.now();
 
-					mixer.update( ( time - prevTime ) * 0.001 );
+					horse_mixer.update( ( time - prevTime ) * 0.001 );
+					fox_mixer.update( ( time - prevTime ) * 0.001 );
 
 					prevTime = time;
 
