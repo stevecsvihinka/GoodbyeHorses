@@ -20,7 +20,6 @@
 		<script src="js/three.min.js"></script>
 		<script src="js/libs/stats.min.js"></script>
 		<script src="js/AnimationClipCreator.js"></script>
-		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/controls/PointerLockControls.js"></script>
 
 		<div id="blocker">
@@ -36,6 +35,7 @@
 
 			container=0; stats=0;
 			scene=0; projector=0; renderer=0;
+			tree=0; tree_mixer=0;
 			horse=0; horse_mixer=0;
 			fox=0; fox_mixer=0;
 			raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
@@ -137,7 +137,7 @@
 			var moveLeft = false;
 			var moveRight = false;
 
-			var prevTime = performance.now();
+			var performanceNow = performance.now();
 			var velocity = new THREE.Vector3();
 
 
@@ -149,12 +149,12 @@
 				//camera
 
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-				camera.rotation.order = 'YXZ';
-				camera.up.set( 1, 1, 0 );
+				//camera.rotation.order = 'ZXY';
+				camera.up.set( 0, 1, 0 );
 				camera.position.y = 300;
 				camera.rotation.x = -(Math.PI / 2);
 				camera.rotation.y = 90 * Math.PI / 180
-				camera.target = new THREE.Vector3( 0, 150, 0 );
+				camera.target = new THREE.Vector3( 0, 0, 20 );
 				
 				//scene
 
@@ -220,6 +220,22 @@
 					fox_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
 
 				} );
+
+				//tree
+
+				var q = new THREE.JSONLoader();
+				q.load( "models/treeOne.js", function( geometry ) {
+
+					tree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: false
+					} ) );
+					tree.scale.set( 50, 50, 50 );
+
+					scene.add( tree );
+
+				} );
+				//tree.rotation.x = Math.sin( THREE.Math.degToRad( 90 ) );
 
 				//renderer
 
@@ -333,13 +349,18 @@
 					if ( controlsEnabled ) {
 					
 					time = performance.now();
-					delta = ( time - prevTime ) / 1000;
+					delta = ( time - performanceNow ) / 100;
 
-					if ( moveForward ) velocity.z -= 400.0 * delta;
-					if ( moveBackward ) velocity.z += 400.0 * delta;
+					velocity.x -= velocity.x * 10.0 * delta;
+					velocity.z -= velocity.z * 10.0 * delta;
 
-					if ( moveLeft ) velocity.x -= 400.0 * delta;
-					if ( moveRight ) velocity.x += 400.0 * delta;
+					velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+
+					if ( moveForward ) velocity.x -= 400.0 * delta;
+					if ( moveBackward ) velocity.x += 400.0 * delta;
+
+					if ( moveLeft ) velocity.z += 400.0 * delta;
+					if ( moveRight ) velocity.z -= 400.0 * delta;
 
 
 					controls.getObject().translateX( velocity.x * delta );
@@ -355,7 +376,7 @@
 
 					}
 
-					//prevTime = time;
+					performanceNow = time;
 
 				}
 
@@ -369,13 +390,15 @@
 			var prevTime = Date.now();
 
 			function render() {
+				//
 
 				theta += 1;
 
 				camera.position.x = radius * Math.sin( THREE.Math.degToRad( 90 ) );
 				camera.position.z = radius * Math.cos( THREE.Math.degToRad( 90 ) );
 
-				
+
+				if ( tree ) { tree.rotation.x = 92.74;}
 				if ( horse ) { horse.position.z = theta*1.5; }
 				if ( fox ) { fox.position.z = theta; }
 				
