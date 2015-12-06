@@ -21,21 +21,15 @@ THREE.PointerLockControls = function ( camera ) {
 
 		if ( scope.enabled === false ) return;
 
-		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+		var movementX = event.movementX || event.mozMovementX || 0;
+		var movementY = event.movementY || event.mozMovementY || 0;
 
-		yawObject.rotation.y += movementX * 0.002;
-		pitchObject.rotation.z -= movementY * 0.002;
+		yawObject.rotation.y -= movementX * 0.002;
+		pitchObject.rotation.x -= movementY * 0.002;
 
 		pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
 
 	};
-
-	this.dispose = function() {
-
-		document.removeEventListener( 'mousemove', onMouseMove, false );
-
-	}
 
 	document.addEventListener( 'mousemove', onMouseMove, false );
 
@@ -51,7 +45,7 @@ THREE.PointerLockControls = function ( camera ) {
 
 		// assumes the camera itself is not rotated
 
-		var direction = new THREE.Vector3( 0, 0, - 1 );
+		var direction = new THREE.Vector3( 0, 0, -1 );
 		var rotation = new THREE.Euler( 0, 0, 0, "YXZ" );
 
 		return function( v ) {
