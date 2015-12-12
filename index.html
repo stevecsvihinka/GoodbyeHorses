@@ -9,15 +9,17 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 		<style>
 			body {
 				font-family: Monospace;
-				background-color: #f0f0f0;
+				background-color: #ccccff;
 				margin: 0px;
 				overflow: hidden;
 			}
+
 		</style>
 	</head>
 	<body>
 
 		<script src="js/three.min.js"></script>
+		<script src="js/threex.grass/threex.grass.js"></script>
 		<script src="js/libs/stats.min.js"></script>
 		<script src="js/AnimationClipCreator.js"></script>
 		<script src="js/controls/PointerLockControls.js"></script>
@@ -34,7 +36,8 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			var camera, scene, renderer;
 			var geometry, material, mesh;
 			var controls;
-			var horse, fox;
+			var horse, fox, hummingbird; 
+			var tree, flower;
 			var animationTime;
 			var objects = [];
 			var raycaster;
@@ -120,7 +123,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			var prevTime = performance.now();
 			var velocity = new THREE.Vector3();
 
-			var horse_mixer, fox_mixer;
+			var horse_mixer, fox_mixer, hummingbird_mixer;
 
 			function init() {
 
@@ -216,6 +219,8 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 				// objects
 
+				// horse
+
 				var loader = new THREE.JSONLoader();
 				loader.load( "models/animated/horse.js", function( geometry ) {
 
@@ -232,6 +237,8 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				 	horse_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
 
 				 } );
+
+				// fox
 
 				var l = new THREE.JSONLoader();
 				l.load( "models/animated/fox.js", function( geometry ) {
@@ -250,13 +257,84 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 				} );
 
+				// hummingbird
+
+				var q = new THREE.JSONLoader();
+				q.load( "models/animated/hummingbird.js", function( geometry ) {
+
+					hummingbird = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: true
+					} ) );
+					hummingbird.scale.set( 0.2, 0.2, 0.2 );
+					scene.add( hummingbird );
+
+					hummingbird_mixer = new THREE.AnimationMixer( hummingbird );
+
+					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'fly', geometry.morphTargets, 30 );
+					hummingbird_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+
+				} );
+
+				//trees
+	
+				var k = new THREE.JSONLoader();
+				k.load( "models/treeOne.js", function( geometry ) {
+
+				for (i = 0; i < 25; i++ ) {
+
+					tree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: false
+					} ) );
+
+					tree.scale.set( 5, 5, 5 );
+					tree.rotation.x = 92.65;
+					random = (Math.random() * 1000);
+					console.log("tree " + i +" x: " + random );
+					tree.position.x = random;
+					random = (Math.random() * 1000);
+					console.log("tree " + i +" y: " + random );
+					tree.position.z = random;
+					scene.add( tree );
+
+				}
+
+				for (i = 0; i < 25; i++ ) {
+
+					tree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: false
+					} ) );
+
+					tree.scale.set( 5, 5, 5 );
+					tree.rotation.x = 92.65;
+					random = -((Math.random() * 1000));
+					console.log("tree " + i +" x: " + random );
+					tree.position.x = random;
+					random = -((Math.random() * 1000));
+					console.log("tree " + i +" y: " + random );
+					tree.position.z = random;
+					scene.add( tree );
+
+				}
+
+			} );
+
+			// flower
+
+			var b = new THREE.OBJLoader();
+			b.load( "models/plants1.obj", function ( object ) {
+  				flower = object ;
+  				scene.add(flower);
+			});
+			
+
 				renderer = new THREE.WebGLRenderer();
-				renderer.setClearColor( 0xffffff );
+				renderer.setClearColor( 0xccccff );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
-
-				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
 
@@ -324,16 +402,23 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 				}
 
-				if ( horse_mixer && fox_mixer ) {
+				if ( horse_mixer && fox_mixer && hummingbird_mixer ) {
 					var time = Date.now();
 					horse_mixer.update( ( time - animationTime ) * 0.001 );
 					fox_mixer.update( ( time - animationTime ) * 0.001 );
+					hummingbird_mixer.update( ( time - animationTime ) * 0.001 );
 					animationTime = time;
 				}
 
 
-				if ( horse ) { horse.position.z = (run/5); }
+				if ( horse ) { 
+					horse.position.z = (run/5); 
+					//if (horse.position)
+				}
 				if ( fox ) { fox.position.z = (run/10); }
+				// if ( tree ) { tree.position.x = 0;
+				// 			tree.position.y = 0; 
+				// 			tree.position.z = 0;}
 
 				renderer.render( scene, camera );
 
