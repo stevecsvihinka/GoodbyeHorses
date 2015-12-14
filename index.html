@@ -9,7 +9,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 		<style>
 			body {
 				font-family: Monospace;
-				background-color: #ccccff;
+				background-color: #7EC0EE;
 				margin: 0px;
 				overflow: hidden;
 			}
@@ -19,6 +19,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 	<body>
 
 		<script src="js/three.min.js"></script>
+		<script src="js/loaders/OBJLoader.js"></script>
 		<script src="js/threex.grass/threex.grass.js"></script>
 		<script src="js/libs/stats.min.js"></script>
 		<script src="js/AnimationClipCreator.js"></script>
@@ -36,8 +37,10 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			var camera, scene, renderer;
 			var geometry, material, mesh;
 			var controls;
-			var horse, fox, hummingbird; 
-			var tree, flower;
+			var group = new THREE.Group();
+			var array = [5];
+			var horse, fox, hummingbird, flower; 
+			var tree, othertree, flower;
 			var animationTime;
 			var objects = [];
 			var raycaster;
@@ -209,10 +212,11 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				geometry = new THREE.PlaneGeometry( 2000, 2000, 100, 100 );
 				geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
 
-				var floorTexture = new THREE.ImageUtils.loadTexture( 'grass.png' );
+				var floorTexture = new THREE.ImageUtils.loadTexture( 'checks.png' );
 				floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
-				floorTexture.repeat.set( 100, 100 );
+				floorTexture.repeat.set( 10000, 10000 );
 				var material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+				
 				
 				mesh = new THREE.Mesh( geometry, material );
 				scene.add( mesh );
@@ -229,6 +233,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				 		morphTargets: true
 				 	} ) );
 				 	horse.scale.set( 0.05, 0.05, 0.05 );
+				 	horse.rotation.y = 1.57079633 ;
 				 	scene.add( horse )
 
 				 	horse_mixer = new THREE.AnimationMixer( horse );
@@ -254,25 +259,6 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'run', geometry.morphTargets, 30 );
 					fox_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
-
-				} );
-
-				// hummingbird
-
-				var q = new THREE.JSONLoader();
-				q.load( "models/animated/hummingbird.js", function( geometry ) {
-
-					hummingbird = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
-						vertexColors: THREE.FaceColors,
-						morphTargets: true
-					} ) );
-					hummingbird.scale.set( 0.2, 0.2, 0.2 );
-					scene.add( hummingbird );
-
-					hummingbird_mixer = new THREE.AnimationMixer( hummingbird );
-
-					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'fly', geometry.morphTargets, 30 );
-					hummingbird_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
 
 				} );
 
@@ -321,22 +307,108 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 			} );
 
+				// var k = new THREE.JSONLoader();
+				// k.load( "models/treeTwo.js", function( geometry ) {
+
+				// for (i = 0; i < 25; i++ ) {
+
+				// 	othertree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+				// 		vertexColors: THREE.FaceColors,
+				// 		morphTargets: false
+				// 	} ) );
+
+				// 	othertree.scale.set( 5, 5, 5 );
+				// 	othertree.rotation.x = 92.65;
+				// 	random = (Math.random() * 1000);
+				// 	console.log("tree " + i +" x: " + random );
+				// 	othertree.position.x = random;
+				// 	random = (Math.random() * 1000);
+				// 	console.log("tree " + i +" y: " + random );
+				// 	othertree.position.z = random;
+				// 	scene.add( othertree );
+
+				// }
+
+				// for (i = 0; i < 25; i++ ) {
+
+				// 	tree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+				// 		vertexColors: THREE.FaceColors,
+				// 		morphTargets: false
+				// 	} ) );
+
+				// 	tree.scale.set( 5, 5, 5 );
+				// 	tree.rotation.x = 92.65;
+				// 	random = -((Math.random() * 1000));
+				// 	console.log("tree " + i +" x: " + random );
+				// 	tree.position.x = random;
+				// 	random = -((Math.random() * 1000));
+				// 	console.log("tree " + i +" y: " + random );
+				// 	tree.position.z = random;
+				// 	scene.add( tree );
+
+				// }
+
+			//} );
+
+				// hummingbird
+
+			var q = new THREE.JSONLoader();
+			q.load( "models/animated/hummingbird.js", function( geometry ) {
+
+				hummingbird = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+				vertexColors: THREE.FaceColors,
+				morphTargets: true
+			} ) );
+				hummingbird.scale.set( 0.2, 0.2, 0.2 );
+				hummingbird.position.x = 17;
+				hummingbird.position.z = -7;
+				hummingbird.position.y = 2;
+				hummingbird.rotation.y = -1.5;
+				group.add( hummingbird );
+				//scene.add( hummingbird );
+
+				hummingbird_mixer = new THREE.AnimationMixer( hummingbird );
+
+				var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'fly', geometry.morphTargets, 30 );
+				hummingbird_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+
+			} );
+
+
 			// flower
 
-			var b = new THREE.OBJLoader();
-			b.load( "models/plants1.obj", function ( object ) {
-  				flower = object ;
-  				scene.add(flower);
-			});
+			var w = new THREE.JSONLoader();
+			w.load( "models/flower.js", function( geometry ) {
+
+			flower = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+				vertexColors: THREE.FaceColors,
+				morphTargets: false
+			} ) );
+
+			flower.scale.set( 0.2, 0.2, 0.2 );
+			flower.position.y = -2;
+
+			group.add ( flower );
+
+			} );
+
+			console.log( group ); //adds flower & hummingbird as one object
+			group.position.z = -30;
+			scene.add( group );
+
+			ss = group.clone();
+			ss.position.z = -60;
+			scene.add( ss );
+
+			//horse.position.z = -60;
 			
+			renderer = new THREE.WebGLRenderer();
+			renderer.setClearColor( 0x7EC0EE );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
 
-				renderer = new THREE.WebGLRenderer();
-				renderer.setClearColor( 0xccccff );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				document.body.appendChild( renderer.domElement );
-
-				window.addEventListener( 'resize', onWindowResize, false );
+			window.addEventListener( 'resize', onWindowResize, false );
 
 			}
 
@@ -412,13 +484,20 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 
 				if ( horse ) { 
-					horse.position.z = (run/5); 
+					horse.position.z = -60;
+					horse.position.x = (run/5); 
 					//if (horse.position)
 				}
 				if ( fox ) { fox.position.z = (run/10); }
-				// if ( tree ) { tree.position.x = 0;
-				// 			tree.position.y = 0; 
-				// 			tree.position.z = 0;}
+
+			// if ( hummingbird && flower)  {
+			// 	for (i = 0; i < 5; i++) {
+			// 		array[i] = group;
+			// 		array[i].position.x = ((Math.random() * 100));
+			// 		array[i].position.z = ((Math.random() * 100));
+			// 		scene.add( array[i] );
+			// 	}
+			// }
 
 				renderer.render( scene, camera );
 
