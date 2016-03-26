@@ -447,24 +447,8 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 			function animate() {
 
-				//bbox.update();
-
 				requestAnimationFrame( animate );
 				run += 1;
-
-				var originPoint = bbox.position.clone();
-	
-				for (var vertexIndex = 0; vertexIndex < bbox.geometry.vertices.length; vertexIndex++)
-				{		
-					var localVertex = bbox.geometry.vertices[vertexIndex].clone();
-					var globalVertex = localVertex.applyMatrix4( bbox.matrix );
-					var directionVector = globalVertex.sub( bbox.position );
-					
-					var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
-					var collisionResults = ray.intersectObjects( collidableMeshList );
-					if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) 
-						console.log(" Hit ");
-				}	
 
 				if ( controlsEnabled ) {
 					raycaster.ray.origin.copy( controls.getObject().position );
@@ -492,6 +476,21 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 						canJump = true;
 					}
+
+					var originPoint = bbox.position.clone();
+	
+					for (var vertexIndex = 0; vertexIndex < bbox.geometry.vertices.length; vertexIndex++) {		
+						var localVertex = bbox.geometry.vertices[vertexIndex].clone();
+						var globalVertex = localVertex.applyMatrix4( bbox.matrix );
+						var directionVector = globalVertex.sub( bbox.position );
+						
+						var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+						var collisionResults = ray.intersectObjects( collidableMeshList );
+						if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
+							velocity.x, velocity.y = 0;
+							velocity.z = 1.5;
+						}
+					}	
 
 					controls.getObject().translateX( velocity.x * delta );
 					bbox.position.x = controls.getObject().position.x;
