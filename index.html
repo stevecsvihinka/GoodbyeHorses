@@ -46,6 +46,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			var raycaster;
 			var blocker = document.getElementById( 'blocker' );
 			var instructions = document.getElementById( 'instructions' );
+			collidableMeshList = [];
 
 			var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
@@ -141,6 +142,13 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				controls = new THREE.PointerLockControls( camera );
 				scene.add( controls.getObject() );
 
+				bbox = new THREE.Mesh( new THREE.CubeGeometry( 200, 200, 200 ), new THREE.MeshPhongMaterial( { color: 0xff0000} ) );
+				bbox.position.y = 10;
+				scene.add( bbox );
+
+				console.log(controls.getObject().position);
+
+
 				var onKeyDown = function ( event ) {
 
 					switch ( event.keyCode ) {
@@ -221,6 +229,16 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				mesh = new THREE.Mesh( geometry, material );
 				scene.add( mesh );
 
+
+			cube = new THREE.Mesh( new THREE.CubeGeometry( 200, 200, 200 ), new THREE.MeshPhongMaterial( { color: 0xff0000} ) );
+			cube.position.x = 10;
+			cube.position.z = 10;
+			cube.position.y = 5;
+			cube.scale.set(0.05,0.05,0.05)
+			scene.add(cube);
+			collidableMeshList.push(cube);
+
+
 				// objects
 
 				// horse
@@ -237,6 +255,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				 	scene.add( horse )
 
 				 	horse_mixer = new THREE.AnimationMixer( horse );
+
 
 				 	var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 30 );
 				 	horse_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
@@ -350,6 +369,8 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 			//} );
 
+
+
 				// hummingbird
 
 			var q = new THREE.JSONLoader();
@@ -426,8 +447,24 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 			function animate() {
 
+				//bbox.update();
+
 				requestAnimationFrame( animate );
 				run += 1;
+
+				var originPoint = bbox.position.clone();
+	
+				for (var vertexIndex = 0; vertexIndex < bbox.geometry.vertices.length; vertexIndex++)
+				{		
+					var localVertex = bbox.geometry.vertices[vertexIndex].clone();
+					var globalVertex = localVertex.applyMatrix4( bbox.matrix );
+					var directionVector = globalVertex.sub( bbox.position );
+					
+					var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+					var collisionResults = ray.intersectObjects( collidableMeshList );
+					if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) 
+						console.log(" Hit ");
+				}	
 
 				if ( controlsEnabled ) {
 					raycaster.ray.origin.copy( controls.getObject().position );
@@ -442,7 +479,6 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 					velocity.x -= velocity.x * 10.0 * delta;
 					velocity.z -= velocity.z * 10.0 * delta;
-
 					velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
 					if ( moveForward ) velocity.z -= 400.0 * delta;
@@ -458,20 +494,24 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 					}
 
 					controls.getObject().translateX( velocity.x * delta );
+					bbox.position.x = controls.getObject().position.x;
 					controls.getObject().translateY( velocity.y * delta );
+					bbox.position.y = controls.getObject().position.y;
 					controls.getObject().translateZ( velocity.z * delta );
+					bbox.position.z = controls.getObject().position.z;
+
 
 					if ( controls.getObject().position.y < 10 ) {
-
 						velocity.y = 0;
 						controls.getObject().position.y = 10;
+						bbox.position.y = controls.getObject().position.y;
 
 						canJump = true;
-
 					}
 
-					prevTime = time;
+					//HERE
 
+					prevTime = time;
 				}
 
 				if ( horse_mixer && fox_mixer && hummingbird_mixer ) {
@@ -486,108 +526,14 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				if ( horse ) { 
 					horse.position.z = -60;
 					horse.position.x = (run/5); 
-					//if (horse.position)
 				}
-				if ( fox ) { fox.position.z = (run/10); }
 
-			// if ( hummingbird && flower)  {
-			// 	for (i = 0; i < 5; i++) {
-			// 		array[i] = group;
-			// 		array[i].position.x = ((Math.random() * 100));
-			// 		array[i].position.z = ((Math.random() * 100));
-			// 		scene.add( array[i] );
-			// 	}
-			// }
+				if ( fox ) { fox.position.z = (run/10); }
 
 				renderer.render( scene, camera );
 
 			}
 
-
-
-				// //floor (grass)
-				
-				// var floorTexture = new THREE.ImageUtils.loadTexture( 'grass.png' );
-				// floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
-				// floorTexture.repeat.set( 100, 100 );
-				// var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
-				// var floorGeometry = new THREE.PlaneGeometry(10000, 10000, 10, 10);
-				// floor = new THREE.Mesh(floorGeometry, floorMaterial);
-				// floor.position.y = -0.5;
-				// floor.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
-				// scene.add(floor);
-
-				// //horse
-				
-				// var loader = new THREE.JSONLoader();
-				// loader.load( "models/animated/horse.js", function( geometry ) {
-
-				// 	horse = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
-				// 		vertexColors: THREE.FaceColors,
-				// 		morphTargets: true
-				// 	} ) );
-				// 	horse.scale.set( 1.5, 1.5, 1.5 );
-				// 	scene.add( horse )
-
-				// 	horse_mixer = new THREE.AnimationMixer( horse );
-
-				// 	var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 30 );
-				// 	horse_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
-
-				// } );
-
-
-				// //fox
-
-				// var l = new THREE.JSONLoader();
-				// l.load( "models/animated/fox.js", function( geometry ) {
-
-				// 	fox = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
-				// 		vertexColors: THREE.FaceColors,
-				// 		morphTargets: true
-				// 	} ) );
-				// 	fox.scale.set( 1.5, 1.5, 1.5 );
-				// 	scene.add( fox );
-
-				// 	fox_mixer = new THREE.AnimationMixer( fox );
-
-				// 	var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'run', geometry.morphTargets, 30 );
-				// 	fox_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
-
-				// } );
-
-				// //tree
-
-				// var q = new THREE.JSONLoader();
-				// q.load( "models/treeOne.js", function( geometry ) {
-
-				// 	tree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
-				// 		vertexColors: THREE.FaceColors,
-				// 		morphTargets: false
-				// 	} ) );
-				// 	tree.scale.set( 50, 50, 50 );
-
-				// 	scene.add( tree );
-
-				// } );
-				// //tree.rotation.x = Math.sin( THREE.Math.degToRad( 90 ) );
-
-				// //renderer
-
-				// renderer = new THREE.WebGLRenderer();
-				// renderer.setClearColor( 0xf0f0f0 );
-				// renderer.setPixelRatio( window.devicePixelRatio );
-				// renderer.setSize( window.innerWidth, window.innerHeight );
-				// container.appendChild(renderer.domElement);
-
-				//controls
-
-
-
-
-			//	if ( tree ) { tree.rotation.x = 92.74;}
-			//	if ( horse ) { horse.position.z = theta*1.5; }
-			//	if ( fox ) { fox.position.z = theta; }
 			
 		</script>
 	</body>
