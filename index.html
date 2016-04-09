@@ -223,21 +223,10 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				var floorTexture = new THREE.ImageUtils.loadTexture( 'checks.png' );
 				floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
 				floorTexture.repeat.set( 10000, 10000 );
-				var material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
-				
+				var material = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );		
 				
 				mesh = new THREE.Mesh( geometry, material );
 				scene.add( mesh );
-
-
-			cube = new THREE.Mesh( new THREE.CubeGeometry( 200, 200, 200 ), new THREE.MeshPhongMaterial( { color: 0xff0000} ) );
-			cube.position.x = 10;
-			cube.position.z = 10;
-			cube.position.y = 5;
-			cube.scale.set(0.05,0.05,0.05)
-			scene.add(cube);
-			collidableMeshList.push(cube);
-
 
 				// objects
 
@@ -302,7 +291,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 					console.log("tree " + i +" y: " + random );
 					tree.position.z = random;
 					scene.add( tree );
-
+					collidableMeshList.push(tree);
 				}
 
 				for (i = 0; i < 25; i++ ) {
@@ -321,7 +310,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 					console.log("tree " + i +" y: " + random );
 					tree.position.z = random;
 					scene.add( tree );
-
+					collidableMeshList.push(tree);
 				}
 
 			} );
@@ -467,7 +456,6 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 					if ( moveForward ) velocity.z -= 400.0 * delta;
 					if ( moveBackward ) velocity.z += 400.0 * delta;
-
 					if ( moveLeft ) velocity.x -= 400.0 * delta;
 					if ( moveRight ) velocity.x += 400.0 * delta;
 
@@ -487,8 +475,27 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 						var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
 						var collisionResults = ray.intersectObjects( collidableMeshList );
 						if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
-							velocity.x, velocity.y = 0;
-							velocity.z = 1.5;
+							if ( moveForward ) {
+								velocity.x, velocity.y = 0;
+								velocity.z = 1;
+								break;
+							}
+							if ( moveBackward ) {
+								velocity.x, velocity.y = 0;
+								velocity.z = -1;
+								break;
+							}
+							if ( moveLeft ) {
+								velocity.z, velocity.y = 0;
+								velocity.x = 1;
+								break;
+							}
+							if ( moveRight ) {
+								velocity.z, velocity.y = 0;
+								velocity.x = -1;
+								break;
+							}
+
 						}
 					}	
 
@@ -498,7 +505,6 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 					bbox.position.y = controls.getObject().position.y;
 					controls.getObject().translateZ( velocity.z * delta );
 					bbox.position.z = controls.getObject().position.z;
-
 
 					if ( controls.getObject().position.y < 10 ) {
 						velocity.y = 0;
@@ -527,7 +533,9 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 					horse.position.x = (run/5); 
 				}
 
-				if ( fox ) { fox.position.z = (run/10); }
+				if ( fox ) { 
+					fox.position.z = (run/10); 
+				}
 
 				renderer.render( scene, camera );
 
