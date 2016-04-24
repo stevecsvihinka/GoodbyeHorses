@@ -47,6 +47,8 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			var blocker = document.getElementById( 'blocker' );
 			var instructions = document.getElementById( 'instructions' );
 			collidableMeshList = [];
+			var locked = false;
+			var onKeyDown; 
 
 			var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
@@ -149,7 +151,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				console.log(controls.getObject().position);
 
 
-				var onKeyDown = function ( event ) {
+				onKeyDown = function ( event ) {
 
 					switch ( event.keyCode ) {
 
@@ -315,52 +317,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 			} );
 
-				// var k = new THREE.JSONLoader();
-				// k.load( "models/treeTwo.js", function( geometry ) {
-
-				// for (i = 0; i < 25; i++ ) {
-
-				// 	othertree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
-				// 		vertexColors: THREE.FaceColors,
-				// 		morphTargets: false
-				// 	} ) );
-
-				// 	othertree.scale.set( 5, 5, 5 );
-				// 	othertree.rotation.x = 92.65;
-				// 	random = (Math.random() * 1000);
-				// 	console.log("tree " + i +" x: " + random );
-				// 	othertree.position.x = random;
-				// 	random = (Math.random() * 1000);
-				// 	console.log("tree " + i +" y: " + random );
-				// 	othertree.position.z = random;
-				// 	scene.add( othertree );
-
-				// }
-
-				// for (i = 0; i < 25; i++ ) {
-
-				// 	tree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
-				// 		vertexColors: THREE.FaceColors,
-				// 		morphTargets: false
-				// 	} ) );
-
-				// 	tree.scale.set( 5, 5, 5 );
-				// 	tree.rotation.x = 92.65;
-				// 	random = -((Math.random() * 1000));
-				// 	console.log("tree " + i +" x: " + random );
-				// 	tree.position.x = random;
-				// 	random = -((Math.random() * 1000));
-				// 	console.log("tree " + i +" y: " + random );
-				// 	tree.position.z = random;
-				// 	scene.add( tree );
-
-				// }
-
-			//} );
-
-
-
-				// hummingbird
+			// hummingbird
 
 			var q = new THREE.JSONLoader();
 			q.load( "models/animated/hummingbird.js", function( geometry ) {
@@ -383,7 +340,6 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				hummingbird_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
 
 			} );
-
 
 			// flower
 
@@ -409,8 +365,6 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			ss = group.clone();
 			ss.position.z = -60;
 			scene.add( ss );
-
-			//horse.position.z = -60;
 			
 			renderer = new THREE.WebGLRenderer();
 			renderer.setClearColor( 0x7EC0EE );
@@ -430,6 +384,34 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
 			}
+
+			function throttle(func, wait, options) {
+            var context, args, result;
+            var timeout = null;
+            var previous = 0;
+            options || (options = {});
+            var later = function() {
+                previous = options.leading === false ? 0 : new Date;
+                timeout = null;
+                result = func.apply(context, args);
+            };
+            return function() {
+                var now = new Date;
+                if (!previous && options.leading === false) previous = now;
+                var remaining = wait - (now - previous);
+                context = this;
+                args = arguments;
+                if (remaining <= 0) {
+                    clearTimeout(timeout);
+                    timeout = null;
+                    previous = now;
+                    result = func.apply(context, args);
+                } else if (!timeout && options.trailing !== false) {
+                    timeout = setTimeout(later, remaining);
+                }
+                return result;
+            };
+        }
 
 			animationTime = Date.now();
 			var run = 0;
@@ -477,22 +459,22 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 						if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
 							if ( moveForward ) {
 								velocity.x, velocity.y = 0;
-								velocity.z = 1;
+								controls.getObject().position.z = bbox.position.z = controls.getObject().position.z - 1;
 								break;
 							}
 							if ( moveBackward ) {
 								velocity.x, velocity.y = 0;
-								velocity.z = -1;
+								controls.getObject().position.z = bbox.position.z = controls.getObject().position.z - 1
 								break;
 							}
 							if ( moveLeft ) {
 								velocity.z, velocity.y = 0;
-								velocity.x = 1;
+								controls.getObject().position.x = bbox.position.x = controls.getObject().position.x + 1
 								break;
 							}
 							if ( moveRight ) {
 								velocity.z, velocity.y = 0;
-								velocity.x = -1;
+								controls.getObject().position.x = bbox.position.x = controls.getObject().position.x - 1
 								break;
 							}
 
