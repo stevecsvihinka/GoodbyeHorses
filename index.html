@@ -29,7 +29,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 		<div id="blocker">
 			<div id="instructions">
-				<span style="font-size:40px">&emsp; Click to play</span>
+				<span style="font-size:40px">&emsp; Click here to play</span>
 				<br />
 				&emsp; W, A, S, D = Move | SPACE = Jump | MOUSE = Look around | ESC = Exit
 			</div>
@@ -44,6 +44,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			var horse, fox, hummingbird, flower, blackWidow; 
 			var tree, othertree, flower, cloud;
 			var animationTime;
+			var babyTime;
 			var objects = [];
 			var raycaster;
 			var blocker = document.getElementById( 'blocker' );
@@ -56,7 +57,11 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			var rc_b = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
 			var roof, card, plane;
 			var boxes = [];
-			var newClouds;
+			var newClouds; 
+			var birdOne, birdTwo, birdThree;
+			var centipede, babyHorse;
+			var horseGenerator;
+			var birds = [];
 
 			var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
@@ -138,7 +143,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 			var prevTime = performance.now();
 			var velocity = new THREE.Vector3();
 
-			var horse_mixer, fox_mixer, hummingbird_mixer, blackWidow_mixer;
+			var horse_mixer, fox_mixer, hummingbird_mixer, blackWidow_mixer, birdOne_mixer, birdTwo_mixer, birdThree_mixer, centipede_mixer, babyHorse_mixer;
 
 			function init() {
 
@@ -287,13 +292,13 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 					scene.add(cone);
 				}
 
-				// objects
+				// animals
 
 				// horse
 
-				var rando = Math.floor((Math.random() * 6) + 1);
+				var horseGenerator = Math.floor((Math.random() * 10) + 1);
 
-				if (rando == 1) {
+				if (horseGenerator == 1 || horseGenerator == 5) {
 
 				var loader = new THREE.JSONLoader();
 				loader.load( "models/animated/horseBear.js", function( geometry ) {
@@ -303,7 +308,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				 		morphTargets: true,
 				 		morphColors: true
 				 	} ) );
-				 	horse.scale.set( 0.05, 0.05, 0.05 );
+				 	horse.scale.set( 0.1, 0.1, 0.1 );
 				 	horse.rotation.y = 1.57079633 ;
 				 	scene.add( horse )
 
@@ -315,6 +320,38 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				 } );
 
 			}
+
+			else if (horseGenerator == 2 | horseGenerator == 3 | horseGenerator == 4 ) {
+
+				var loader = new THREE.JSONLoader();
+				loader.load( "models/animated/horse.js", function( geometry ) {
+				horse = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+				 		vertexColors: THREE.FaceColors,
+				 		morphTargets: true
+				 	} ) );
+				babyHorse = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+				 		vertexColors: THREE.FaceColors,
+				 		morphTargets: true
+				 	} ) );
+				 	horse.scale.set( 0.1, 0.1, 0.1 );
+				 	horse.rotation.y = 1.57079633 ;
+				 	babyHorse.scale.set( 0.05, 0.05, 0.05 );
+				 	babyHorse.rotation.y = 1.57079633 ;
+				 	scene.add( horse );
+				 	scene.add( babyHorse );
+
+				 	horse_mixer = new THREE.AnimationMixer( horse );
+				 	var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 30 );
+				 	horse_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+
+				babyHorse_mixer = new THREE.AnimationMixer( babyHorse );
+				 	var c = THREE.AnimationClip.CreateFromMorphTargetSequence( 'g', geometry.morphTargets, 30 );
+				 	babyHorse_mixer.addAction( new THREE.AnimationAction( c ).warpToDuration( 1 ) );
+				 } );
+
+
+			}
+
 			else {
 
 				var loader = new THREE.JSONLoader();
@@ -323,7 +360,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 				 		vertexColors: THREE.FaceColors,
 				 		morphTargets: true
 				 	} ) );
-				 	horse.scale.set( 0.05, 0.05, 0.05 );
+				 	horse.scale.set( 0.1, 0.1, 0.1 );
 				 	horse.rotation.y = 1.57079633 ;
 				 	scene.add( horse )
 				 	horse_mixer = new THREE.AnimationMixer( horse );
@@ -374,7 +411,83 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 				} );
 
-				//hater blockers
+				//birds
+
+				birds = ["models/animated/eagle.js", "models/animated/parrot.js", "models/animated/flamingo.js", "models/animated/owlParrot.js"];
+				shuffledBirds = shuffleArray(birds);
+
+
+				var el = new THREE.JSONLoader();
+				el.load( shuffledBirds[0], function( geometry ) {
+
+					birdOne = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: true
+					} ) );
+					birdOne.scale.set( 0.1, 0.1, 0.1 );
+					scene.add( birdOne );
+
+					birdOne_mixer = new THREE.AnimationMixer( birdOne );
+
+					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'fly', geometry.morphTargets, 30 );
+					birdOne_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+
+				} );
+
+				el = new THREE.JSONLoader();
+				el.load( shuffledBirds[1], function( geometry ) {
+
+					birdTwo = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: true
+					} ) );
+					birdTwo.scale.set( 0.1, 0.1, 0.1 );
+					scene.add( birdTwo );
+
+					birdTwo_mixer = new THREE.AnimationMixer( birdTwo );
+
+					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'fly', geometry.morphTargets, 30 );
+					birdTwo_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+
+				} );
+
+				el = new THREE.JSONLoader();
+				el.load( shuffledBirds[2], function( geometry ) {
+
+					birdThree = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: true
+					} ) );
+					birdThree.scale.set( 0.1, 0.1, 0.1 );
+					scene.add( birdThree );
+
+					birdThree_mixer = new THREE.AnimationMixer( birdThree );
+
+					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'fly', geometry.morphTargets, 30 );
+					birdThree_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+
+				} );
+
+				//centipede
+
+				var cl = new THREE.JSONLoader();
+				cl.load( "models/animated/centipede.js", function( geometry ) {
+
+					centipede = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
+						vertexColors: THREE.FaceColors,
+						morphTargets: true
+					} ) );
+					centipede.scale.set( 0.1, 0.1, 0.1 );
+					scene.add( centipede );
+
+					centipede_mixer = new THREE.AnimationMixer( centipede );
+
+					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'crawl', geometry.morphTargets, 30 );
+					centipede_mixer.addAction( new THREE.AnimationAction( clip ).warpToDuration( 1 ) );
+
+				} );
+
+				//bounding planes next to cave
 
 				var geometry1 = new THREE.PlaneGeometry( 90, 110, 1, 1 );            
     			var geometry2 = new THREE.PlaneGeometry( 90, 110, 1, 1 );            
@@ -433,7 +546,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 				} );
 
-				// boxes
+				// boxes (stairs)
 
 				geometry = new THREE.BoxGeometry( 20, 20, 20 );
 				for ( var i = 0, l = geometry.faces.length; i < l; i ++ ) {
@@ -498,8 +611,7 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 
 				
 				scene.add( newClouds );
-				//boxes.push( newClouds );
-				//collidableMeshList.push( newClouds );
+
 				newClouds.position.y = 200;
 				newClouds.position.x = 200;
 
@@ -691,14 +803,16 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
         }
 
 			animationTime = Date.now();
+			babyTime = Date.now();
 			var run = 0;
+			var step = 0;
+        	var stepspeed = 0.05;
 
 			function animate() {
 
 				requestAnimationFrame( animate );
 				run += 1;
-				// bbox.position.z = controls.getObject().position.z;
-				// bbox.position.x = controls.getObject().position.x;
+				step += stepspeed;
 
 				if ( controls.getObject().position.z > 1000 ) {
 					renderer.setClearColor( 0x545454 );
@@ -750,27 +864,22 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 							if ( moveForward ) {
 								velocity.x, velocity.y = 0;
 								controls.getObject().position.z = bbox.position.z = controls.getObject().position.z - 1;
-								break;
 							}
 							if ( moveBackward ) {
 								velocity.x, velocity.y = 0;
 								controls.getObject().position.z = bbox.position.z = controls.getObject().position.z - 1
-								break;
 							}
 							if ( moveLeft ) {
 								velocity.z, velocity.y = 0;
 								controls.getObject().position.x = bbox.position.x = controls.getObject().position.x + 1
-								break;
 							}
 							if ( moveRight ) {
 								velocity.z, velocity.y = 0;
 								controls.getObject().position.x = bbox.position.x = controls.getObject().position.x - 1
-								break;
 							}
 
 						}
-					}	
-
+					}	 
 					controls.getObject().translateX( velocity.x * delta );
 					bbox.position.x = controls.getObject().position.x;
 					controls.getObject().translateY( velocity.y * delta );
@@ -791,19 +900,30 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 					prevTime = time;
 				}
 
-				if ( horse_mixer && fox_mixer && hummingbird_mixer && blackWidow_mixer) {
+				if ( horse_mixer && fox_mixer && hummingbird_mixer && blackWidow_mixer && birdOne_mixer && birdTwo_mixer && birdThree_mixer && centipede_mixer) {
 					var time = Date.now();
 					horse_mixer.update( ( time - animationTime ) * 0.001 );
 					fox_mixer.update( ( time - animationTime ) * 0.001 );
 					hummingbird_mixer.update( ( time - animationTime ) * 0.001 );
 					blackWidow_mixer.update( ( time - animationTime ) * 0.001 );
+					birdOne_mixer.update( ( time - animationTime ) * 0.001 );
+					birdTwo_mixer.update( ( time - animationTime ) * 0.001 );
+					birdThree_mixer.update( ( time - animationTime ) * 0.001 );
+					centipede_mixer.update( ( time - animationTime ) * 0.001 );
 					animationTime = time;
+				}
+
+				if ( babyHorse_mixer ) {
+					var time = Date.now();
+					babyHorse_mixer.update( ( time - babyTime ) * 0.001 );
+					babyTime = time;
 				}
 
 
 				if ( horse ) { 
+					horse.position.x = -100;
 					horse.position.z = -60;
-					horse.position.x = (run/5); 
+					horse.position.x += (run/2); 
 				}
 
 				if ( fox ) { 
@@ -814,12 +934,63 @@ unix: python -m SimpleHTTPServer [<portNo>] -->
 					blackWidow.position.z = 1050; 
 					blackWidow.position.z += (run/10); 
 				}
-				else {
-					console.log(":/");
+				
+				if ( birdOne ) {
+					birdOne.position.x = 1300;
+					birdOne.position.y = 250;
+					birdOne.position.z = 75;
+					birdOne.position.x += -16 + ( 30 * (Math.cos(step)));
+    				birdOne.position.z += -16 + ( 30 * (Math.sin(step)));
+    				birdOne.rotation.y = (-step);
+    				
+				}
+
+				if ( birdTwo ) {
+					birdTwo.position.x = 1300;
+					birdTwo.position.y = 300;
+					birdTwo.position.z = 75;
+					birdTwo.position.x += -8 + ( 20 * (Math.cos(step)));
+    				birdTwo.position.z += -8 + ( 20 * (Math.sin(step)));
+    				birdTwo.rotation.y = (-step);
+    				
+				}
+
+				if ( birdThree ) {
+					birdThree.position.x = 1300;
+					birdThree.position.y = 350;
+					birdThree.position.z = 75;
+					birdThree.position.x += -8 + ( 20 * (Math.cos(step)));
+    				birdThree.position.z += -8 + ( 20 * (Math.sin(step)));
+    				birdThree.rotation.y = (-step);
+    				
+				}
+
+
+				if ( centipede ) {
+    				centipede.position.z = 1100; 
+    				centipede.position.z += (run/10);
+    				
+				}
+				if ( babyHorse ) {
+					babyHorse.position.x = -110;
+					babyHorse.position.z = -55;
+					babyHorse.position.x += (run/2); 
 				}
 
 				renderer.render( scene, camera );
 
+
+			}
+
+			//the Durstenfeld shuffle
+			function shuffleArray(array) { 
+    			for (var i = array.length - 1; i > 0; i--) {
+        			var j = Math.floor(Math.random() * (i + 1));
+        			var temp = array[i];
+        			array[i] = array[j];
+        			array[j] = temp;
+    			}
+    			return array;
 			}
 
 			
